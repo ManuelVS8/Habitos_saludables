@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Hábitos saludables</title>
+<style>
+  /* ====== Reset & base (Mantenido de la app original) ====== */
+  * { box-sizing: border-box; margin:0; padding:0; }
+  :root{
+    --blue:#001DFF;
+    --blue-dark:#04032B; /* Usado para título final */
+    --blue-700:#1a3a5f;
+    --blue-600:#254fba;
+    --orange:#f59e42;
+    --orange-700:#e67e22;
+    --bg-grad-1:#1a3a5f;
+    --bg-grad-2:#0d2340;
+    --white:#ffffff;
+    --green:#2ecc71;
+    --red:#e74c3c;
+    --panel:#E8EAFF;
+  }
+  body{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+    min-height:100vh; display:flex; justify-content:center; align-items:center; color:#333; padding:10px;
+  }
+  .game-container{
+    background:var(--white); border-radius:16px; box-shadow:0 12px 24px rgba(0,0,0,.12);
+    padding:1.2rem; max-width:980px; width:100%; min-height:640px; position:relative; overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  header{ text-align:center; margin-bottom:.8rem; margin-top:2rem; }
+  h1{ color:var(--blue); font-size:clamp(2rem,5.2vw,3.1rem); font-weight:900; letter-spacing:.5px; }
+  .subtitle{ color:var(--blue-700); font-size:clamp(1rem,3.5vw,1.25rem); margin-top:.25rem; }
+  .highlight-keyword{ color:var(--orange); font-weight:800; }
+
+  .btn{ color:#fff; border:none; padding:.75rem 1.2rem; border-radius:10px; cursor:pointer; font-weight:800;
+        transition:transform .08s ease, box-shadow .2s ease, background-color .25s ease; min-width:140px; height:48px;
+        display:inline-flex; align-items:center; justify-content:center; }
+  .btn:hover{ transform:translateY(-2px); box-shadow:0 6px 14px rgba(0,0,0,.12); }
+  .btn:active{ transform:translateY(0); }
+  .btn-primary{ background:var(--orange); }
+  .btn-primary:hover{ background:var(--orange-700); }
+  .btn-blue{ background:var(--blue-600); }
+  .btn-blue:hover{ filter:brightness(.9); }
+  .btn-ghost{ background:#e6f2ff; color:var(--blue-700); }
+  /* Nuevos estilos de botones de respuesta */
+  .btn-green{ background:var(--green); font-size:clamp(1.2rem, 4vw, 1.8rem); flex:1; }
+  .btn-green:hover{ background:#27ae60; }
+  .btn-red{ background:var(--red); font-size:clamp(1.2rem, 4vw, 1.8rem); flex:1; }
+  .btn-red:hover{ background:#c0392b; }
+  /* Ajuste de padding, fuente y nowrap para que "No saludable" no se divida y tenga margen */
+  .btn-response { 
+      height: 70px; 
+      border-radius: 12px; 
+      padding: 0.75rem 2.5rem; /* Aumento del padding horizontal */
+      white-space: nowrap; /* Asegura que el texto no se divida */
+      font-size: clamp(1.2rem, 4vw, 1.8rem); /* Ajuste responsivo de la fuente */
+  }
+  .btn-response.correct-highlight { box-shadow: 0 0 0 4px var(--green); }
+  .btn-response.incorrect-highlight { box-shadow: 0 0 0 4px var(--red); }
+
+  .screen{ display:none; animation:fadeIn .35s ease; }
+  .screen.active{ display:block; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);} }
+
+  .game-info{ display:flex; gap:.6rem; align-items:center; justify-content:space-between; margin:.4rem 0 1rem; flex-wrap:wrap; }
+  .timer{ font-weight:900; color:var(--blue-700); font-size:clamp(.95rem,2.3vw,1.15rem); }
+  .progress-bar{ flex:1; height:10px; background:#e6f2ff; border-radius:999px; overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--orange) 0%, var(--orange-700) 100%); transition:width .3s ease; }
+  .score{ font-weight:900; color:var(--blue-700); font-size:clamp(.9rem,2.3vw,1.1rem); }
+
+  .start-content{ display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1; gap:1rem; padding:1rem; }
+  .advice-box{ background:var(--panel); border-left:4px solid var(--blue-700); padding:1rem 1.2rem; border-radius:12px;
+               color:var(--blue-700); max-width:760px; text-align:center; font-size:clamp(1rem,3vw,1.15rem); }
+  .start-image{ max-width: 300px; width: 100%; margin: 0 auto; }
+
+  .mute-btn{ position:absolute; top:.8rem; right:4.5rem; background:var(--orange); color:#fff; border:2px solid #fff; width:38px; height:38px; border-radius:50%; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; z-index:20; }
+  .mute-btn:hover{ background:var(--orange-700); }
+  .help-btn{ position:absolute; top:.8rem; right:.8rem; width:38px; height:38px; border-radius:50%; border:none; background:#9c27b0; color:#fff; font-weight:800; cursor:pointer; z-index:20; }
+
+  .board{ display:flex; flex-direction:column; gap:.8rem; align-items:start; flex:1; }
+  .panel{ background:#f8fbff; border:2px solid #d3e2ff; border-radius:12px; padding:.7rem .9rem; display:flex; align-items:center; justify-content:center; gap:.8rem; width:100%; }
+  .word-display-container{ display:flex; align-items:center; justify-content:center; gap:0.5rem; flex:1; }
+  .btn-play-word{ background:var(--blue-600); color:#fff; border:none; border-radius:50%; width:44px; height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background-color .2s; }
+  .btn-play-word:hover{ background:var(--blue-700); }
+  .btn-play-word svg{ width:24px; height:24px; }
+  
+  .stage{ background:#fff; border-radius:12px; border:2px solid #e6f2ff; padding:1.5rem; box-shadow: inset 0 0 0 1px #f3f7ff;
+          display:flex; flex-direction:column; justify-content:center; align-items:center; gap:1.5rem; flex:1; width:100%; max-width: 600px; margin: 0 auto; }
+  /* AUMENTO EL ANCHO MÁXIMO DEL CONTENEDOR DE BOTONES DE 400px a 600px */
+  .response-buttons-wrap { display: flex; gap: 1rem; width: 100%; max-width: 600px; }
+
+  /* Estilos de la pantalla de resultados (Mantenido y adaptado) */
+  .results{ display:flex; flex-direction:column; align-items:center; gap:.6rem; text-align:center; min-height:calc(100vh - 180px); }
+  .final-title{ color:var(--blue-dark); font-weight:900; }
+  .big-score{ font-size:clamp(2.2rem,6vw,3.4rem); color:var(--blue-600); font-weight:900; }
+  .score-title{ font-size:1.0rem; color:var(--blue-700); margin-top:1rem; }
+  .final-time{ color:var(--blue-700); }
+  .trophy{ font-size:clamp(4rem,10vw,6rem); margin:.2rem 0; color:var(--orange); animation:bounce 1s ease infinite; }
+  @keyframes bounce { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-8px);} }
+  .credit{ color:var(--blue-700); margin-top:1rem; }
+
+  /* Tamaño del mensaje final */
+  #finalMsg {
+    font-size: clamp(1.6rem, 3.8vw, 2.4rem);
+    font-weight: 800;
+    color: var(--blue-700);
+    margin-top: 0.6rem;
+  }
+
+  /* Estilos para el logo del colegio en la pantalla final */
+  .school-logo {
+    display: block;
+    width: 160px;
+    max-width: 28%;
+    height: auto;
+    margin-top: 0.8rem;
+    border-radius: 8px;
+    object-fit: contain;
+  }
+
+  /* Ajustes responsivos para móviles */
+  @media (max-width: 899px) {
+    header{ margin-top:1.6rem; }
+    .school-logo { width: 140px; max-width: 160px; }
+    .game-container { min-height: auto; }
+  }
+  @media (max-width: 420px) {
+    .school-logo { width: 110px; max-width: 40%; margin-top: 0.6rem; }
+    .results { gap: 0.4rem; padding: 0 0.6rem; }
+    #finalMsg { font-size: clamp(1.2rem, 4.2vw, 1.8rem); }
+    .big-score { font-size: clamp(1.8rem, 6vw, 2.6rem); }
+    /* Ajuste de botones en móvil: apilados y con padding ligeramente menor */
+    .response-buttons-wrap { flex-direction: column; gap: 0.8rem; max-width: 250px; }
+    .btn-response { height: 60px; padding: 0.6rem 2rem; } 
+  }
+  @media (max-width: 320px) {
+    .school-logo { width: 90px; max-width: 48%; }
+    #finalMsg { font-size: clamp(1.1rem, 4.6vw, 1.6rem); }
+  }
+
+  .confetti{ position:fixed; width:10px; height:10px; border-radius:50%; animation: confetti-fall 3s linear forwards; z-index:999; }
+  @keyframes confetti-fall{ 0%{ transform:translate(0, -20px) rotate(0); opacity:1;} 100%{ transform:translate(var(--tx), var(--ty)) rotate(360deg); opacity:0; } }
+
+  .loading-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none; /* Inicialmente oculto */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    flex-direction: column;
+  }
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--orange);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .loading-text {
+    color: white;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  /* Nuevo estilo para el consejo, centrado y en dos líneas */
+  .advice-box .advice-text {
+      display: block;
+  }
+  .advice-box strong {
+      display: block;
+      margin-top: 0.5rem;
+      text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <button class="mute-btn" id="muteBtn" title="Silenciar/Activar sonido">🔊</button>
+
+  <section class="screen active" id="startScreen" aria-labelledby="title">
+    <header>
+      <h1 id="title">Hábitos saludables</h1>
+      <div class="subtitle">Identifica qué <span class="highlight-keyword">hábitos</span> son saludables para nuestra salud.</div>
+    </header>
+    <div class="start-content">
+      <div class="advice-box" role="note" aria-live="polite">
+        <span class="advice-text"><span class="highlight-keyword">Escucha</span> los audios y <span class="highlight-keyword">señala</span> si es un hábito saludable o no saludable.</span>
+        <strong>¡Buena suerte!</strong>
+      </div>
+      <button class="btn btn-primary" id="playBtn">Jugar</button>
+      <img class="start-image" src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/main/Ni%C3%B1os.png" alt="Niños aprendiendo">
+    </div>
+  </section>
+
+  <section class="screen" id="gameScreen">
+    <button class="help-btn" id="helpBtn" title="Ayuda">?</button>
+    <header>
+      <h1>Hábitos saludables</h1>
+    </header>
+    <div class="game-info">
+      <div class="timer" id="timer">00:00</div>
+      <div class="progress-bar" aria-label="Progreso"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="score">Puntuación: <span id="score">0</span>/100</div>
+    </div>
+
+    <div class="board">
+      <div class="panel" aria-live="polite">
+        <div class="word-display-container" id="wordDisplayContainer">
+          <button class="btn-play-word" id="playWordBtn" title="Reproducir audio" aria-label="Reproducir audio de la situación">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2024/svg">
+              <path d="M8 5v14l11-7z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="response-buttons-wrap">
+          <button class="btn btn-response btn-green" id="btnSaludable" data-habit="Saludable" aria-label="Hábito Saludable">Saludable</button>
+          <button class="btn btn-response btn-red" id="btnNoSaludable" data-habit="No saludable" aria-label="Hábito No Saludable">No&nbsp;saludable</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="resultsScreen">
+    <header>
+      <h1 class="final-title" style="color:var(--blue-dark);">Hábitos saludables</h1>
+    </header>
+    <div class="results">
+      <div id="trophyBox" style="display:none;">
+        <div class="trophy">🏆</div>
+      </div>
+      <div class="score-title">Puntuación</div>
+      <div class="big-score" id="finalScore">0</div>
+      <div class="final-time">Tiempo: <span id="finalTime">00:00</span></div>
+      <div id="finalMsg" class="subtitle"></div>
+      <button class="btn btn-primary" id="backToMenuBtn" style="background:var(--orange);">Volver al menú</button>
+      <span class="credit">Created by Manuel J. Ventura</span>
+      <img class="school-logo" src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/1e2a36cdd1f8bedcb578a30f5ec5cc8f21c287fe/Siurot.png" alt="Logo del colegio" />
+    </div>
+  </section>
+</div>
+
+<div class="loading-indicator" id="loadingIndicator">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Cargando audios...</div>
+</div>
+
+<div id="helpModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100; justify-content:center; align-items:center; padding:1rem;">
+  <div style="background:#fff; border-radius:12px; max-width:680px; width:100%; padding:1.2rem 1.2rem; box-shadow:0 10px 24px rgba(0,0,0,.2);">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:.5rem; margin-bottom:.8rem;">
+      <h3 style="color:var(--blue-700);">Cómo jugar</h3>
+      <button class="btn-ghost" id="closeHelp" style="border-radius:8px; padding:.4rem .7rem; height:auto; min-width:auto;">Cerrar</button>
+    </div>
+    <div style="line-height:1.55; color:#333;">
+      <p><strong style="color: #001A73; font-weight: bold;">Pulsa el botón del reproductor</strong> para escuchar el audio y <strong style="color: #001A73; font-weight: bold;">señala</strong> si se trata de un hábito saludable o no saludable.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/************** Data **************/
+const DELAY_AFTER_ANSWER = 500; // 0.5 segundos
+
+/* Datos de los hábitos */
+const GAME_PAIRS = [
+    // --- Saludables (10) ---
+    { habit: 'Saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/S%C3%AD%20Juegos%20salud.mp3' },
+    { habit: 'Saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/S%C3%AD%20aseo.mp3' },
+    { habit: 'Saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/S%C3%AD%20cepillar.mp3' },
+    { habit: 'Saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/S%C3%AD%20descanso.mp3' },
+    { habit: 'Saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/S%C3%AD%20dialogo.mp3' },
+    { habit: 'Saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/S%C3%AD%20ejercicio.mp3' },
+    { habit: 'Saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/S%C3%AD%20frutas.mp3' },
+    { habit: 'Saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/S%C3%AD%20hidratado.mp3' },
+    { habit: 'Saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/S%C3%AD%20oretector%20solar.mp3' },
+    { habit: 'Saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/S%C3%AD%20postura.mp3' },
+    // --- No Saludables (10) ---
+    { habit: 'No saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/NO%20abrigar.mp3' },
+    { habit: 'No saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/NO%20alimnetaci%C3%B3n%20sana.mp3' },
+    { habit: 'No saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/NO%20compa%C3%B1%C3%ADa.mp3' },
+    { habit: 'No saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/NO%20m%C3%A9dico.mp3' },
+    { habit: 'No saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/NO%20prar%20movil.mp3' },
+    { habit: 'No saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/NO%20volumen.mp3' },
+    { habit: 'No saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/No%20aprender.mp3' },
+    { habit: 'No saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/No%20bebida%20salud.mp3' },
+    { habit: 'No saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/No%20descansar.mp3' },
+    { habit: 'No saludable', audio: 'https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/main/2Sentidos/No%20dialogar.mp3' },
+];
+
+const TOTAL_QUESTIONS = GAME_PAIRS.length; // 20 preguntas en total
+
+// Mapeo de audios de efectos (URLs actualizadas a raw content)
+const soundFiles = {
+  completed: 'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Completado.mp3',
+  correct:   'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Correcto.mp3',
+  victory:   'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Termin%C3%A9.mp3',
+  error:     'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/7b86808e254100aeaba6285b3e0b82650ae78055/Error.mp3',
+  tap:       'https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/37b3eb2da9c15c04dfb71dfe1be60f088ea3cdfc/Tap.mp3'
+};
+let sounds = {}; // Inicializado en el evento click
+let isMuted = false;
+let audioUnlocked = false;
+let currentWordAudio = null;
+let pendingAudioTimeout = null;
+let audiosPrecargados = false;
+let userInteracted = false;
+
+const wordAudios = {}; // Almacena todos los audios de las preguntas
+
+/**
+ * Inicializa los audios de efectos. Se llama al pulsar Jugar.
+ */
+function initializeEffectAudios() {
+  if(Object.keys(sounds).length > 0) return; // Ya inicializado
+  Object.entries(soundFiles).forEach(([k, url])=>{
+    const a = new Audio();
+    a.src = url;
+    a.preload = 'auto';
+    a.crossOrigin = 'anonymous';
+    sounds[k] = a;
+  });
+}
+
+/**
+ * Precarga los audios de las palabras para asegurar la reproducción.
+ */
+function preloadWordAudios() {
+  return new Promise((resolve) => {
+    if (audiosPrecargados) {
+      resolve();
+      return;
+    }
+
+    let loadedCount = 0;
+    const totalToLoad = TOTAL_QUESTIONS;
+
+    if (totalToLoad === 0) {
+      audiosPrecargados = true;
+      resolve();
+      return;
+    }
+
+    GAME_PAIRS.forEach((pair, index) => {
+      try {
+        const audio = new Audio();
+        const key = index;
+        audio.src = pair.audio;
+        audio.preload = 'auto';
+        audio.crossOrigin = 'anonymous';
+
+        const checkCompletion = () => {
+          loadedCount++;
+          if (loadedCount === totalToLoad) {
+            audiosPrecargados = true;
+            resolve();
+          }
+        };
+
+        // Escucha 'canplaythrough' o 'error' para contar la carga
+        audio.addEventListener('canplaythrough', checkCompletion, { once: true });
+        audio.addEventListener('error', checkCompletion, { once: true });
+
+        wordAudios[key] = audio;
+      } catch(e) {
+        // En caso de error de creación, contamos como cargado para no bloquear
+        loadedCount++;
+        if (loadedCount === totalToLoad) {
+          audiosPrecargados = true;
+          resolve();
+        }
+      }
+    });
+  });
+}
+
+/**
+ * Intenta desbloquear el Web Audio API. Se llama al pulsar Jugar.
+ */
+function unlockAudio(){
+  if (audioUnlocked) return;
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g);
+    g.connect(ctx.destination);
+    g.gain.value = 0.0001; // Volumen casi cero
+    o.start();
+    o.stop(ctx.currentTime + 0.02);
+    audioUnlocked = true;
+  } catch(e){
+    console.warn("Web Audio API no disponible o error al desbloquear:", e);
+    audioUnlocked = true;
+  }
+}
+
+/**
+ * Reproduce un sonido de efecto.
+ */
+function play(name){
+  if(isMuted) return;
+  const a = sounds[name];
+  if(!a) return;
+  try{
+    a.currentTime = 0;
+    const p = a.play();
+    if (p && p.catch) p.catch(err => console.warn('Reproducción de efecto fallida (no-fatal):', err));
+  } catch(e){
+    console.warn('Audio play error:', e);
+  }
+}
+
+function reproducirSonidoCorrecto(){ play('correct'); }
+function reproducirSonidoError(){ play('error'); }
+function reproducirSonidoCompletado(){ play('completed'); }
+function reproducirSonidoVictoria(){ play('victory'); }
+function reproducirSonidoTap(){ play('tap'); }
+
+/**
+ * Reproduce el audio de la palabra.
+ */
+function playWordAudio(questionIndex, delay = 0) {
+  if (!userInteracted) {
+    console.log("Audio no desbloqueado o no interactuado.");
+    return;
+  }
+  if (pendingAudioTimeout) {
+    clearTimeout(pendingAudioTimeout);
+    pendingAudioTimeout = null;
+  }
+  if (isMuted) return;
+
+  const audio = wordAudios[questionIndex];
+  if (!audio) {
+    console.error(`No se encontró audio precargado para el índice: "${questionIndex}"`);
+    return;
+  }
+  try {
+    if (currentWordAudio && !currentWordAudio.paused && currentWordAudio !== audio) {
+      currentWordAudio.pause();
+      currentWordAudio.currentTime = 0;
+    }
+    currentWordAudio = audio;
+
+    const playAudioNow = () => {
+      try {
+        audio.currentTime = 0;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.warn(`Error al reproducir audio (política de autoplay):`, error);
+          });
+        }
+      } catch(e) {
+        console.error('Error al intentar iniciar la reproducción:', e);
+      }
+    };
+
+    if (delay > 0) {
+      pendingAudioTimeout = setTimeout(playAudioNow, delay);
+    } else {
+      playAudioNow();
+    }
+  } catch(e) {
+    console.error('Error al configurar la reproducción de audio:', e);
+  }
+}
+
+/************** State & helpers **************/
+const el = (id)=>document.getElementById(id);
+const progressFill = el('progressFill');
+const timerEl = el('timer');
+const scoreEl = el('score');
+const loadingIndicator = el('loadingIndicator');
+const btnSaludable = el('btnSaludable');
+const btnNoSaludable = el('btnNoSaludable');
+const playWordBtn = el('playWordBtn');
+
+let playOrder = []; // Índice de GAME_PAIRS
+let playIndex = 0; // Índice actual en playOrder
+let answered = new Set(); // Guarda los índices de GAME_PAIRS ya respondidos
+let correctCount = 0;
+let timerInt = null; let elapsed = 0;
+let mode = 'start'; 
+const responseButtons = [btnSaludable, btnNoSaludable];
+
+function fmtTime(s){ const m=Math.floor(s/60).toString().padStart(2,'0'); const ss=(s%60).toString().padStart(2,'0'); return `${m}:${ss}`; }
+function startTimer(){ clearInterval(timerInt); timerInt = setInterval(()=>{ elapsed++; timerEl.textContent = fmtTime(elapsed); },1000); }
+function stopTimer(){ clearInterval(timerInt); }
+function updateProgress(){ 
+  const pct = (answered.size / TOTAL_QUESTIONS)*100; 
+  // Puntuación: respuestas correctas / total de respuestas (20) × 100.
+  const score = Math.round((correctCount/TOTAL_QUESTIONS)*100);
+  progressFill.style.width = pct + '%'; 
+  scoreEl.textContent = score;
+}
+
+function beginPlay(){
+  mode='play';
+  // Generar orden aleatorio para las 20 preguntas
+  playOrder = shuffle([...Array(TOTAL_QUESTIONS).keys()]);
+  playIndex=0;
+  answered.clear();
+  correctCount=0;
+  updateProgress();
+  
+  elapsed = 0;
+  timerEl.textContent = '00:00';
+  startTimer();
+  
+  // Iniciar la primera pregunta
+  const firstQuestionIdx = playOrder[playIndex];
+  playWordAudio(firstQuestionIdx, 0);
+}
+
+function onHabitButtonClick(e){
+  if(mode!=='play') return;
+  
+  const currentQuestionIdx = playOrder[playIndex];
+  const currentQuestion = GAME_PAIRS[currentQuestionIdx];
+  
+  if(!currentQuestion || answered.has(currentQuestionIdx)) return;
+
+  const habitClicked = this.dataset.habit; // 'Saludable' o 'No saludable'
+  const correctHabit = currentQuestion.habit; 
+  
+  // Pausar audio
+  if (currentWordAudio) { currentWordAudio.pause(); currentWordAudio.currentTime = 0; currentWordAudio = null; }
+  if (pendingAudioTimeout) { clearTimeout(pendingAudioTimeout); pendingAudioTimeout = null; }
+  
+  const rightButton = responseButtons.find(b => b.dataset.habit === correctHabit);
+  
+  // Deshabilitar botones
+  mode = 'wait';
+  
+  if(habitClicked === correctHabit){
+    // Respuesta Correcta
+    this.classList.add('correct-highlight');
+    reproducirSonidoCorrecto();
+    correctCount++;
+  } else {
+    // Respuesta Incorrecta
+    this.classList.add('incorrect-highlight');
+    // Resaltar también el correcto brevemente
+    if (rightButton) rightButton.classList.add('correct-highlight');
+    reproducirSonidoError();
+  }
+  
+  answered.add(currentQuestionIdx); updateProgress();
+  
+  setTimeout(()=>{
+    // Quitar resaltados
+    this.classList.remove('correct-highlight', 'incorrect-highlight');
+    if (rightButton) rightButton.classList.remove('correct-highlight');
+    
+    // Avanzar a la siguiente pregunta
+    if(answered.size === TOTAL_QUESTIONS){ 
+      finishGame(); 
+    } else {
+      playIndex++; // Avanzamos al siguiente en el orden aleatorio
+      const nextQuestionIdx = playOrder[playIndex];
+      playWordAudio(nextQuestionIdx, 0); // Reproducir siguiente audio inmediatamente (delay ya pasó)
+      mode = 'play';
+    }
+  }, DELAY_AFTER_ANSWER); // Demora antes de pasar a la siguiente
+}
+
+function finishGame(){ stopTimer(); 
+  const score = Math.round((correctCount/TOTAL_QUESTIONS)*100);
+  el('gameScreen').classList.remove('active'); el('resultsScreen').classList.add('active');
+  
+  el('finalScore').textContent = score; el('finalTime').textContent = fmtTime(elapsed);
+  el('trophyBox').style.display = (score===100) ? 'block' : 'none';
+  
+  if(score===100){ 
+    el('finalMsg').textContent = '¡Enhorabuena, puntuación máxima!';
+    reproducirSonidoVictoria(); 
+    spawnConfetti(); 
+  } else { 
+    el('finalMsg').textContent = '¡Buen trabajo! Sigue practicando';
+    reproducirSonidoCompletado(); 
+  }
+  mode = 'finished';
+}
+
+function shuffle(a){ const arr=[...a]; for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+
+/**
+ * Función de Confeti (Mantenida)
+ */
+function spawnConfetti(){
+  for(let i=0;i<120;i++){
+    setTimeout(()=>{
+      const c=document.createElement('div');
+      c.className='confetti';
+      const x=Math.random()*window.innerWidth;
+      const ty=window.innerHeight+20;
+      const tx=(Math.random()-.5)*160;
+      const colors=['#ff595e','#1982c4','#6a4c93','#ffca3a','#8ac926','#ff924c','#00c2ff'];
+      c.style.left=x+'px';
+      c.style.top='-10px';
+      c.style.backgroundColor=colors[Math.floor(Math.random()*colors.length)];
+      const size=6+Math.random()*8;
+      c.style.width=size+'px';
+      c.style.height=size+'px';
+      c.style.setProperty('--tx', tx+'px');
+      c.style.setProperty('--ty', ty+'px');
+      document.body.appendChild(c);
+      setTimeout(()=>c.remove(), 3200);
+    }, i*18);
+  }
+}
+
+function gotoStart(){
+  el('resultsScreen').classList.remove('active'); el('gameScreen').classList.remove('active'); el('startScreen').classList.add('active');
+  playOrder=[]; playIndex=0; answered.clear(); correctCount=0; elapsed=0; timerEl.textContent='00:00'; progressFill.style.width='0%'; scoreEl.textContent='0'; mode='start';
+  
+  // Detener audios
+  if (currentWordAudio) { currentWordAudio.pause(); currentWordAudio.currentTime = 0; currentWordAudio = null; }
+  if (pendingAudioTimeout) { clearTimeout(pendingAudioTimeout); pendingAudioTimeout = null; }
+}
+
+/* --- Event Listeners --- */
+
+el('playBtn').addEventListener('click', async ()=>{
+  userInteracted = true;
+  
+  // 1. Unlocked Audio
+  unlockAudio();
+  initializeEffectAudios();
+  reproducirSonidoTap();
+
+  // 2. Preload Game Audios (if not loaded)
+  if (!audiosPrecargados) {
+      el('playBtn').disabled = true;
+      loadingIndicator.style.display = 'flex';
+      loadingIndicator.querySelector('.loading-text').textContent = "Cargando audios...";
+      
+      // Esperar a que se carguen todos los audios de preguntas
+      await preloadWordAudios();
+      
+      loadingIndicator.style.display = 'none';
+      el('playBtn').disabled = false;
+  }
+
+  // 3. Start Game
+  el('startScreen').classList.remove('active');
+  el('gameScreen').classList.add('active');
+  // No hay placeMarkers en este juego
+  beginPlay();
+});
+
+
+playWordBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (mode !== 'play') return;
+  const currentQuestionIdx = playOrder[playIndex];
+  playWordAudio(currentQuestionIdx, 0);
+});
+
+// Event listeners para los nuevos botones de respuesta
+btnSaludable.addEventListener('click', onHabitButtonClick);
+btnNoSaludable.addEventListener('click', onHabitButtonClick);
+
+el('backToMenuBtn').addEventListener('click', ()=>{
+  reproducirSonidoTap();
+  gotoStart();
+});
+
+el('helpBtn').addEventListener('click', ()=>{
+  reproducirSonidoTap();
+  el('helpModal').style.display='flex';
+});
+el('closeHelp').addEventListener('click', ()=>{
+  reproducirSonidoTap();
+  el('helpModal').style.display='none';
+});
+el('helpModal').addEventListener('click', (e)=>{
+  if(e.target===el('helpModal')) el('helpModal').style.display='none';
+});
+
+el('muteBtn').addEventListener('click', ()=>{
+  isMuted = !isMuted;
+  el('muteBtn').textContent = isMuted ? '🔇' : '🔊';
+  if (isMuted && currentWordAudio) { currentWordAudio.pause(); currentWordAudio.currentTime = 0; }
+  if (pendingAudioTimeout) { clearTimeout(pendingAudioTimeout); pendingAudioTimeout = null; }
+  // Si está activado, reproduce un tap para confirmar
+  if (!isMuted && userInteracted) { reproducirSonidoTap(); }
+});
+
+// Ocultar el indicador de carga si el HTML lo dejaba visible.
+document.addEventListener('DOMContentLoaded', () => {
+    loadingIndicator.style.display = 'none';
+});
+</script>
+</body>
+</html>
